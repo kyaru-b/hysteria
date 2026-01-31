@@ -96,9 +96,16 @@ EOF
 # Обновляем docker-compose.yml с правильным портом
 sed -i "s/2053:2053/${PANEL_PORT}:${PANEL_PORT}/g" docker-compose.yml
 
+# Определяем команду docker compose
+if command -v docker-compose &> /dev/null; then
+    DOCKER_COMPOSE="docker-compose"
+else
+    DOCKER_COMPOSE="docker compose"
+fi
+
 # Запуск контейнеров
 echo -e "${YELLOW}[3/7] Запуск Docker контейнеров...${NC}"
-docker-compose up -d nginx 3x-ui
+$DOCKER_COMPOSE up -d nginx 3x-ui
 
 # Ждём запуска
 echo -e "${YELLOW}[4/7] Ожидание запуска сервисов...${NC}"
@@ -106,7 +113,7 @@ sleep 10
 
 # Получение SSL сертификата
 echo -e "${YELLOW}[5/7] Получение SSL сертификата...${NC}"
-docker-compose run --rm certbot certonly --webroot \
+$DOCKER_COMPOSE run --rm certbot certonly --webroot \
     --webroot-path=/var/www/certbot \
     --email ${EMAIL} \
     --agree-tos \
@@ -187,8 +194,8 @@ EOF
 
 # Перезапуск nginx
 echo -e "${YELLOW}[7/7] Перезапуск Nginx...${NC}"
-docker-compose restart nginx
-docker-compose up -d
+$DOCKER_COMPOSE restart nginx
+$DOCKER_COMPOSE up -d
 
 # Сохранение информации
 cat > credentials.txt << EOF
